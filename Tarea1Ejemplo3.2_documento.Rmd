@@ -1,0 +1,100 @@
+---
+title: 'Asignación 3: ejercicio 3.2 Inferencias sobre una población'
+author: "Jop Rubén Escobedo Cruz"
+date: "09/09/2026"
+output:
+  word_document: default
+  pdf_document: default
+lang: es
+---
+
+```{r}
+# Jop Rubén Escobedo Cruz
+# Matrícula
+# Fecha de entrega- 09/09/2026
+
+# EJERCICIO 3.2----
+
+# Hipótesis:
+
+# H0: mu = 80 kg - el peso neto medio de los costales es igual al contenido declarado.
+# H1: mu < 80 kg - el peso neto medio de los costales es menor que el contenido declarado.
+
+
+# Ingresar datos ----
+
+costal <- c(87.7, 80.01, 77.28, 78.76, 81.52, 74.2, 80.71, 79.5, 77.87, 81.94,
+            80.7, 82.32, 75.78, 80.19, 83.91, 79.4, 77.52, 77.62, 81.4, 74.89,
+            82.95, 73.59, 77.92, 77.18, 79.83, 81.23, 79.28, 78.44, 79.01,
+            80.47, 76.23, 78.89, 77.14, 69.94, 78.54, 79.7, 82.45, 77.29,
+            75.52, 77.21, 75.99, 81.94, 80.41, 77.7)
+
+# Graficar ----
+
+hist(costal,
+     main = "",
+     xlab = "Peso neto (kg)",
+     ylab = "Frecuencia",
+     ylim = c(0,12),
+     col = "lightblue")
+
+# Normalidad datos y estadisticos descriptivos ----
+
+shapiro.test(costal)
+
+mean(costal)
+sd(costal)
+var(costal)
+fivenum(costal)
+
+boxplot(costal,
+        col = "red",
+        ylab = "Peso neto (kg)")
+
+# Prueba t de una sola muestra
+
+t.test(costal, mu = 80, alternative = "less")
+```
+
+## Qué representan las hipótesis
+
+La hipótesis nula sostiene la afirmación de la empresa, según la cual el
+contenido neto medio de los costales corresponde a los 80 kg declarados. La
+hipótesis alternativa recoge la sospecha del consumidor, según la cual el
+contenido medio real es inferior al declarado.
+
+## Por qué corresponde una prueba de una cola
+
+La pregunta de investigación establece explícitamente que se desea determinar
+si la media es menor que 80 kg. Al fijar la dirección de antemano, toda la
+región de rechazo se concentra en el extremo inferior de la distribución.
+
+## Identificación de resultados
+
+Estadístico $t$ = -2.364
+
+Grados de libertad = 43
+
+Valor de $p$ = 0.0113
+
+Media observada = 78.91 kg
+
+Desviación estándar = 3.06 kg
+
+Intervalo de confianza unilateral del 95 % = (-Inf , 79.685] kg
+
+## Comparación con el nivel de significancia
+
+Dado que 0.0113 es menor que 0.05, se rechaza $H_0$.
+
+## Conclusión
+
+El peso neto medio de los 44 costales muestreados es de 78.91 kg, con una
+desviación estándar de 3.06 kg. La prueba t para una muestra de cola izquierda
+detectó una diferencia estadísticamente significativa respecto del contenido
+neto declarado de 80 kg (t = -2.364; gl = 43; p = 0.0113).
+
+El límite superior del intervalo de confianza unilateral del 95 %, 79.69 kg,
+queda por debajo del valor declarado. Existe evidencia estadística suficiente
+para afirmar que los costales contienen, en promedio, menos de 80 kg, con una
+deficiencia estimada de 1.09 kg por unidad.
