@@ -129,3 +129,4 @@ barplot(feeds[order(feeds)], # Orden creciente: la mayor queda arriba
         xlab = "Número de Pollos", # Eje de las x
         col = c("#FFCC00", "#FFD11A", "#FFD633", "#FFDB4D", "#FFE066", "#FFE680")) # Gradiente amarillo
 
+
