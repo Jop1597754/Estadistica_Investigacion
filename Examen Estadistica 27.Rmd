@@ -1,0 +1,247 @@
+---
+title: "Examen: estadística paramétrica"
+author: "Jop Rubén Escobedo Cruz - Matrícula 1597754"
+date: "27/10/2026"
+output: pdf_document
+lang: es
+---
+
+```{r}
+# Jop Rubén Escobedo Cruz
+# Matrícula 1597754
+# 27/10/2026
+
+# Examen estadística ----
+# Planteamiento:
+# 30 parcelas de pino asignadas al azar a tres tratamientos (testigo, aclareo
+#     ligero y aclareo moderado; 10 por tratamiento). Variables: área basal
+#     inicial (m2 ha-1) e incremento anual de área basal (m2 ha-1 año-1).
+#     Unidad experimental: la parcela. Nivel de significancia: alfa = 0.05.
+
+# Construcción de los datos
+
+datos <- data.frame(
+  Parcela = sprintf("P%02d", 1:30),
+  Tratamiento = factor(
+    rep(c("Testigo", "Ligero", "Moderado"), each = 10),
+    levels = c("Testigo", "Ligero", "Moderado")
+  ),
+  Area_basal_inicial = c(
+    32, 26, 39, 29, 43, 35, 28, 41, 34, 37,
+    31, 42, 27, 38, 33, 45, 29, 40, 36, 44,
+    30, 37, 46, 28, 41, 34, 43, 32, 39, 35
+  ),
+  Incremento = c(
+    1.32, 1.16, 1.61, 1.42, 1.59,
+    1.27, 1.35, 1.54, 1.43, 1.62,
+    1.48, 1.72, 1.39, 1.82, 1.61,
+    1.53, 1.88, 1.67, 1.59, 1.76,
+    1.57, 1.93, 1.81, 2.08, 1.69,
+    1.84, 2.16, 1.73, 1.98, 1.88
+  )
+)
+
+str(datos) # Estructura y tipo de cada variable
+
+table(datos$Tratamiento) # Número de parcelas por tratamiento
+
+# 4.3 Actividad A. Estadística descriptiva ----
+# Función tapply aplica cada estadístico por tratamiento
+tabla <- data.frame(
+  n = tapply(datos$Incremento, datos$Tratamiento, length),
+  Media = tapply(datos$Incremento, datos$Tratamiento, mean),
+  Mediana = tapply(datos$Incremento, datos$Tratamiento, median),
+  DE = tapply(datos$Incremento, datos$Tratamiento, sd),
+  Varianza = tapply(datos$Incremento, datos$Tratamiento, var),
+  Minimo = tapply(datos$Incremento, datos$Tratamiento, min),
+  Maximo = tapply(datos$Incremento, datos$Tratamiento, max)
+)
+tabla$CV_pct <- 100 * tabla$DE / tabla$Media # CV (%)
+round(tabla, 3)
+
+# Respuestas:
+# Mayor media: Moderado (1.867 m2 ha-1 año-1).
+# Mayor dispersión absoluta: Moderado (DE = 0.180).
+# Mayor dispersión relativa: Testigo (CV = 11.01 %).
+# La descripción solo resume las parcelas observadas; las diferencias entre
+#     medias muestrales pueden deberse al azar del muestreo. Demostrar
+#     diferencias entre medias poblacionales requiere una prueba de hipótesis.
+
+# 4.4 Actividad B. Representación gráfica ----
+# Figura 1. Cajas y puntos individuales por tratamiento
+# Guardar la configuración gráfica
+op <- par(no.readonly = TRUE)
+
+# Márgenes: inferior, izquierdo, superior y derecho
+par(mar = c(5, 7, 3, 2))
+
+boxplot(
+  Incremento ~ Tratamiento,
+  data = datos,
+  col = c("#D9D9D9", "#A6CEE3", "#B2DF8A"),
+  xlab = "Tratamiento",
+  ylab = expression(
+    "Incremento de área basal (" *
+      plain(m)^2 ~ plain(ha)^{-1} ~ "año"^{-1} * ")"
+  ),
+  outline = FALSE
+)
+
+set.seed(123)
+
+stripchart(
+  Incremento ~ Tratamiento,
+  data = datos,
+  vertical = TRUE,
+  method = "jitter",
+  jitter = 0.10,
+  pch = 16,
+  col = "#333333",
+  add = TRUE
+)
+
+# Restaurar la configuración
+par(op)
+
+# Descripción de la Figura 1:
+# Medianas: aumentan de testigo (1.425) a ligero (1.64) y moderado (1.86).
+# Dispersión: mayor en el moderado (1.57 a 2.16).
+# Superposición: los intervalos de valores se superponen entre los tres
+#     tratamientos.
+# Valores extremos: no se observan.
+
+# Figura 2. Dispersión en el testigo con recta ajustada
+testigo <- subset(datos, Tratamiento == "Testigo")
+
+modelo_reg <- lm(Incremento ~ Area_basal_inicial, data = testigo)
+
+plot(
+  testigo$Area_basal_inicial, testigo$Incremento,
+  pch = 16, col = "#2166AC",
+  xlab = expression("Área basal inicial (" * plain(m)^2 ~ plain(ha)^{-1} * ")"),
+  ylab = expression(
+    "Incremento de área basal (" *
+      plain(m)^2 ~ plain(ha)^{-1} ~ "año"^{-1} * ")"
+  )
+)
+abline(modelo_reg, col = "#B2182B", lwd = 2)
+
+# Descripción de la Figura 2:
+# Dirección: positiva.
+# Forma: aproximadamente lineal.
+# Dispersión: los puntos se distribuyen a ambos lados de la recta, con
+#     desviaciones de hasta 0.17 m2 ha-1 año-1.
+
+# 4.5 Actividad C. Correlación de Pearson ----
+# Se utiliza solamente el testigo.
+
+# Hipótesis:
+# H0: rho = 0 - No existe una correlación lineal estadísticamente significativa
+#     entre el área basal inicial y el incremento en las parcelas testigo.
+# H1: rho != 0 - Existe una correlación lineal estadísticamente significativa
+#     entre el área basal inicial y el incremento en las parcelas testigo.
+
+resultado_cor <- cor.test(
+  testigo$Area_basal_inicial, testigo$Incremento,
+  method = "pearson", alternative = "two.sided"
+)
+resultado_cor
+
+# Respuestas:
+# r = 0.795; IC 95 % = [0.332, 0.949]; p = 0.0060 (< 0.05: se rechaza H0).
+# Dirección: positiva. Intensidad: fuerte.
+# No demuestra causalidad: el área basal inicial no se asignó
+#     experimentalmente y ambas variables podrían depender de otro factor
+#     (por ejemplo, la calidad de sitio).
+
+# 4.6 Actividad D. Regresión lineal simple ----
+# Modelo: Incremento_i = B0 + B1 * AreaBasalInicial_i + E_i (testigo)
+modelo_reg <- lm(Incremento ~ Area_basal_inicial, data = testigo)
+summary(modelo_reg)
+
+# Estimación del incremento medio para 36 m2 ha-1
+predict(
+  modelo_reg,
+  newdata = data.frame(Area_basal_inicial = 36),
+  interval = "confidence", level = 0.95
+)
+
+# Respuestas:
+# Respuesta: Incremento. Predictor: Area_basal_inicial.
+# Ecuación estimada: Incremento = 0.675 + 0.02198 * AreaBasalInicial
+# Pendiente: por cada 1 m2 ha-1 adicional de área basal inicial, el
+#     incremento medio aumenta 0.022 m2 ha-1 año-1.
+# R2 = 0.6325: el modelo explica 63.2 % de la variabilidad del incremento.
+# Incremento medio estimado para 36 m2 ha-1: 1.466 m2 ha-1 año-1.
+# Intercepto: corresponde a un área basal inicial de cero, valor no
+#     observado (intervalo de 26 a 43 m2 ha-1); no representa una condición
+#     real.
+# Extrapolación: la relación solo se verificó entre 26 y 43 m2 ha-1; fuera
+#     de ese intervalo no hay datos que la respalden.
+
+# 4.7 Actividad E. Comparación de dos muestras ----
+# Hipótesis:
+# H0: muT = muM - No existe una diferencia estadísticamente significativa en el
+#     incremento medio entre el testigo y el aclareo moderado.
+# H1: muT != muM - Existe una diferencia estadísticamente significativa en el
+#     incremento medio entre el testigo y el aclareo moderado.
+
+dos_grupos <- droplevels(
+  subset(datos, Tratamiento %in% c("Testigo", "Moderado"))
+)
+
+resultado_t <- t.test(
+  Incremento ~ Tratamiento, data = dos_grupos,
+  alternative = "two.sided", var.equal = TRUE,
+  conf.level = 0.95
+)
+resultado_t
+
+# Respuestas:
+# Medias: testigo = 1.431; moderado = 1.867 m2 ha-1 año-1.
+# Orden de la resta: testigo - moderado.
+# Diferencia = -0.436 m2 ha-1 año-1; IC 95 % = [-0.595, -0.277].
+# t = -5.771; gl = 18; p = 1.807e-05 (< 0.05: se rechaza H0).
+
+# 4.8 Actividad F. Comparación de tres muestras ----
+# Hipótesis:
+# H0: muT = muL = muM - No existe una diferencia estadísticamente significativa
+#     en el incremento medio entre tratamientos.
+# H1: No todas las medias poblacionales son iguales.
+
+modelo_anova <- aov(Incremento ~ Tratamiento, data = datos)
+summary(modelo_anova)
+
+# Respuestas:
+# F = 17.61; gl = 2 y 27; p = 1.27e-05 (< 0.05: se rechaza H0).
+# Alcance: indica que al menos una media difiere; no identifica qué pares
+#     difieren.
+
+# 4.9 Actividad G. Evaluación de supuestos y entrega ----
+# Diagnóstico de la regresión
+par(mfrow = c(1, 2))
+plot(modelo_reg, which = 1)
+plot(modelo_reg, which = 2)
+par(mfrow = c(1, 1))
+
+# Diagnóstico del ANOVA
+par(mfrow = c(1, 2))
+plot(modelo_anova, which = 1)
+plot(modelo_anova, which = 2)
+par(mfrow = c(1, 1))
+
+# Evaluación de supuestos:
+# Independencia: se sustenta en el diseño (asignación aleatoria de parcelas).
+# Pearson: pares independientes; relación aproximadamente lineal (Figura 2).
+# Regresión: residuos sin patrón frente a ajustados (linealidad y varianza
+#     constante); Q-Q sobre la recta (normalidad de los errores).
+# Prueba t y ANOVA: los tres agrupamientos corresponden a las medias de los
+#     grupos (no es violación); dispersión similar entre grupos (homogeneidad
+#     de varianzas); Q-Q sobre la recta (normalidad de los errores).
+
+# Conclusión forestal:
+# En el conjunto simulado, el aclareo moderado presentó mayor incremento
+#     medio que el testigo (1.867 frente a 1.431 m2 ha-1 año-1), y en el
+#     testigo el incremento aumentó con el área basal inicial.
+# Estos resultados provienen de datos simulados; una recomendación de manejo
+#
